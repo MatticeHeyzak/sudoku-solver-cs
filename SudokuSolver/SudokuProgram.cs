@@ -1,9 +1,19 @@
 ﻿using Raylib_cs;
+using SudokuSolver.Renderer;
 
 namespace SudokuSolver;
 
 public sealed class SudokuProgram
 {
+
+    private IRenderer _renderer;
+
+    public SudokuProgram(
+        IRenderer renderer)
+    {
+        _renderer = renderer;
+    }
+    
     public void Run()
     {
         Raylib.InitWindow(
@@ -26,6 +36,8 @@ public sealed class SudokuProgram
     private void Draw()
     {
         Raylib.BeginDrawing();
+        Raylib.ClearBackground(Color.White);
+        _renderer.Draw();
         Raylib.EndDrawing();
     }
 }
