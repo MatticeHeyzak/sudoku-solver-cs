@@ -1,1 +1,4 @@
-﻿Console.WriteLine("Hello, World!");
+﻿using SudokuSolver;
+
+var program = new SudokuProgram();
+program.Run();
