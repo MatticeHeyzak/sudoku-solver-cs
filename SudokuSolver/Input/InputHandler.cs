@@ -6,40 +6,31 @@ namespace SudokuSolver.Input;
 
 public sealed class InputHandler
 {
-    private readonly BoardLayout _layout;
-    private bool InputMode = true;
+    private bool _inputMode = true;
 
-    public InputHandler(BoardLayout layout)
-    {
-        _layout = layout;
-    }
-    
     public (int Row, int Col)? SelectedCell { get; private set; }
 
-    
-    public void Update(SudokuBoard board)
+    public void Update(SudokuBoard board, BoardLayout layout)
     {
-        if (!InputMode)
-            return;
-        
-        HandleMouseSelection();
+        if (!_inputMode) return;
+
+        HandleMouseSelection(layout);
         HandleKeyboardNavigation();
         HandleDigitInput(board);
     }
 
     public void DisableInputMode()
     {
-        InputMode = false;
+        _inputMode = false;
         SelectedCell = null;
     }
 
-    private void HandleMouseSelection()
+    private void HandleMouseSelection(BoardLayout layout)
     {
-        if (!Raylib.IsMouseButtonPressed(MouseButton.Left))
-            return;
-        
+        if (!Raylib.IsMouseButtonPressed(MouseButton.Left)) return;
+
         var mousePos = Raylib.GetMousePosition();
-        if (_layout.TryGetCell(mousePos, out int row, out int col))
+        if (layout.TryGetCell(mousePos, out int row, out int col))
             SelectedCell = (row, col);
     }
 
@@ -52,24 +43,18 @@ public sealed class InputHandler
             {
                 SelectedCell = (0, 0);
             }
-
             return;
         }
 
         int row = sel.Row;
         int col = sel.Col;
-        
-        
-        if (Raylib.IsKeyPressed(KeyboardKey.Up))
-            row = Math.Max(0, row - 1);
-        else if (Raylib.IsKeyPressed(KeyboardKey.Down))
-            row = Math.Min(BoardLayout.GridSize - 1, row + 1);
-        else if (Raylib.IsKeyPressed(KeyboardKey.Left))
-            col = Math.Max(0, col - 1);
-        else if (Raylib.IsKeyPressed(KeyboardKey.Right))
-            col = Math.Min(BoardLayout.GridSize - 1, col + 1);
+
+        if (Raylib.IsKeyPressed(KeyboardKey.Up)) row = Math.Max(0, row - 1);
+        else if (Raylib.IsKeyPressed(KeyboardKey.Down)) row = Math.Min(BoardLayout.GridSize - 1, row + 1);
+        else if (Raylib.IsKeyPressed(KeyboardKey.Left)) col = Math.Max(0, col - 1);
+        else if (Raylib.IsKeyPressed(KeyboardKey.Right)) col = Math.Min(BoardLayout.GridSize - 1, col + 1);
         else return;
-        
+
         SelectedCell = (row, col);
     }
 
@@ -88,6 +73,8 @@ public sealed class InputHandler
         }
 
         if (Raylib.IsKeyPressed(KeyboardKey.Backspace) || Raylib.IsKeyPressed(KeyboardKey.Delete))
+        {
             board.TrySet(sel.Row, sel.Col, 0, CellOrigin.Empty);
+        }
     }
 }

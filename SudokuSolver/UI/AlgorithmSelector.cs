@@ -5,48 +5,59 @@ namespace SudokuSolver.UI;
 
 public class AlgorithmSelector
 {
-    private readonly Dictionary<SolverType, Button> _buttons = new();
+    private const float ButtonGap = 6f;
 
-    private bool InputMode = true;
+    private readonly Dictionary<SolverType, Button> _buttons = new();
+    private bool _inputMode = true;
 
     public SolverType Selected { get; private set; } = SolverType.Backtracking;
 
     public AlgorithmSelector(Rectangle area)
     {
-        var types = Enum.GetValues<SolverType>();
-        var buttonWidth = area.Width / types.Length;
+        foreach (var type in Enum.GetValues<SolverType>())
+            _buttons[type] = new Button(new Rectangle(), type.ToString());
 
-        for (int i = 0; i < types.Length; i++)
-        {
-            var type = types[i];
-            var bounds = new Rectangle(area.X + i * buttonWidth, area.Y, buttonWidth - 4, area.Height);
-            _buttons[type] = new Button(bounds, type.ToString());
-        }
-
+        UpdateLayout(area);
         _buttons[Selected].IsActive = true;
     }
 
-    public void DisableInputMode() => InputMode = false;
-    
+    public void DisableInputMode() => _inputMode = false;
+
+    /// Recomputes each button's rectangle from the given bar area.
+    /// Call every frame (or on resize) so buttons scale with the window.
+    public void UpdateLayout(Rectangle area)
+    {
+        var types = _buttons.Keys.ToArray();
+        var buttonWidth = (area.Width - ButtonGap * (types.Length - 1)) / types.Length;
+
+        for (int i = 0; i < types.Length; i++)
+        {
+            var bounds = new Rectangle(
+                area.X + i * (buttonWidth + ButtonGap),
+                area.Y,
+                buttonWidth,
+                area.Height);
+
+            _buttons[types[i]].UpdateBounds(bounds);
+        }
+    }
+
     public void Update()
     {
-        if (!InputMode)
-            return;
-        
+        if (!_inputMode) return;
+
         foreach (var (type, button) in _buttons)
         {
             if (!button.IsClicked()) continue;
 
             Selected = type;
-            foreach (var b in _buttons.Values)
-                b.IsActive = false;
+            foreach (var b in _buttons.Values) b.IsActive = false;
             button.IsActive = true;
         }
     }
 
     public void Draw()
     {
-        foreach (var button in _buttons.Values)
-            button.Draw();
+        foreach (var button in _buttons.Values) button.Draw();
     }
 }

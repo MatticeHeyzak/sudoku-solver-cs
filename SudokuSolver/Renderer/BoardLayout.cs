@@ -16,11 +16,26 @@ public readonly struct BoardLayout
         CellLength = cellLength;
     }
 
-    public static BoardLayout FromWindow(int windowWidth, float scale = 0.8f)
+    public static BoardLayout ComputeForScreen(int screenWidth, int screenHeight)
     {
-        var gridLength = windowWidth * scale;
-        var start = (windowWidth - gridLength) / 2f;
-        return new BoardLayout(new Rectangle(start, start, gridLength, gridLength), gridLength / GridSize);
+        int availableWidth = screenWidth - Settings.BoardMargin * 2;
+        int availableHeight = screenHeight - Settings.ButtonBarHeight - Settings.BoardMargin * 3;
+
+        float gridLength = Math.Max(GridSize, Math.Min(availableWidth, availableHeight));
+
+        float startX = (screenWidth - gridLength) / 2f;
+        float startY = Settings.BoardMargin;
+
+        return new BoardLayout(new Rectangle(startX, startY, gridLength, gridLength), gridLength / GridSize);
+    }
+
+    public Rectangle GetButtonBarArea(int screenWidth)
+    {
+        return new Rectangle(
+            Settings.BoardMargin,
+            Bounds.Y + Bounds.Height + Settings.BoardMargin,
+            screenWidth - Settings.BoardMargin * 2,
+            Settings.ButtonBarHeight);
     }
 
     public bool TryGetCell(Vector2 point, out int row, out int col)

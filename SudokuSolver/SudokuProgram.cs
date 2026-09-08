@@ -9,31 +9,26 @@ namespace SudokuSolver;
 
 public sealed class SudokuProgram
 {
-
-    private IRenderer _renderer;
+    private readonly IRenderer _renderer;
     private readonly SudokuBoard _board = new();
-    private readonly InputHandler _input;
+    private readonly InputHandler _input = new();
     private readonly AlgorithmSelector _algorithmSelector;
 
-    public SudokuProgram(
-        IRenderer renderer,
-        BoardLayout layout)
+    private BoardLayout _layout;
+
+    public SudokuProgram(IRenderer renderer)
     {
         _renderer = renderer;
-        _input = new InputHandler(layout);
-        
-        var barArea = new Rectangle(
-            0,
-            layout.Bounds.Y + layout.Bounds.Height + 20,
-            Settings.WindowWidth,
-            Settings.ButtonBarHeight);
 
-        _algorithmSelector = new AlgorithmSelector(barArea);
+        _layout = BoardLayout.ComputeForScreen(Settings.WindowWidth, Settings.WindowHeight);
+        _algorithmSelector = new AlgorithmSelector(_layout.GetButtonBarArea(Settings.WindowWidth));
     }
-    
+
     public void Run()
     {
+        Raylib.SetConfigFlags(ConfigFlags.ResizableWindow);
         Raylib.InitWindow(Settings.WindowWidth, Settings.WindowHeight, Settings.WindowName);
+        Raylib.SetWindowMinSize(Settings.MinWindowWidth, Settings.MinWindowHeight);
         Raylib.SetTargetFPS(Settings.Fps);
 
         while (!Raylib.WindowShouldClose())
@@ -47,7 +42,9 @@ public sealed class SudokuProgram
 
     private void Update()
     {
-        _input.Update(_board);
+        RecalculateLayout();
+
+        _input.Update(_board, _layout);
         _algorithmSelector.Update();
 
         if (Raylib.IsKeyPressed(KeyboardKey.Enter))
@@ -59,11 +56,20 @@ public sealed class SudokuProgram
         }
     }
 
+    private void RecalculateLayout()
+    {
+        int width = Raylib.GetScreenWidth();
+        int height = Raylib.GetScreenHeight();
+
+        _layout = BoardLayout.ComputeForScreen(width, height);
+        _algorithmSelector.UpdateLayout(_layout.GetButtonBarArea(width));
+    }
+
     private void Draw()
     {
         Raylib.BeginDrawing();
         Raylib.ClearBackground(Color.White);
-        _renderer.Draw(_board, _input.SelectedCell);
+        _renderer.Draw(_board, _input.SelectedCell, _layout);
         _algorithmSelector.Draw();
         Raylib.EndDrawing();
     }

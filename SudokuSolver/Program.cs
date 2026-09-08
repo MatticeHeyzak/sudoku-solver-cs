@@ -1,8 +1,6 @@
 ﻿using SudokuSolver;
 using SudokuSolver.Renderer;
 
-var layout = BoardLayout.FromWindow(Settings.WindowWidth);
-var renderer = new SudokuRenderer(layout);
-
-var program = new SudokuProgram(renderer, layout);
+var renderer = new SudokuRenderer();
+var program = new SudokuProgram(renderer);
 program.Run();

@@ -5,7 +5,11 @@ namespace SudokuSolver.UI;
 
 public sealed class Button
 {
-    public Rectangle Bounds { get; }
+    private const float MaxFontScale = 0.4f;
+    private const float MinFontSize = 10f;
+    private const float HorizontalPadding = 8f;
+
+    public Rectangle Bounds { get; private set; }
     public string Label { get; }
     public bool IsActive { get; set; }
 
@@ -14,7 +18,13 @@ public sealed class Button
         Bounds = bounds;
         Label = label;
     }
-    
+
+    /// Called whenever the window / bar layout changes size.
+    public void UpdateBounds(Rectangle bounds)
+    {
+        Bounds = bounds;
+    }
+
     public bool IsClicked() =>
         Raylib.IsMouseButtonPressed(MouseButton.Left)
         && Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), Bounds);
@@ -25,12 +35,29 @@ public sealed class Button
         Raylib.DrawRectangleRec(Bounds, backColor);
         Raylib.DrawRectangleLinesEx(Bounds, 2f, Color.Black);
 
-        var fontSize = (int)(Bounds.Height * 0.35f);
-        var textWidth = Raylib.MeasureText(Label, fontSize);
+        var fontSize = GetFittingFontSize();
+        var textSize = Raylib.MeasureTextEx(Raylib.GetFontDefault(), Label, fontSize, 1);
         var pos = new Vector2(
-            Bounds.X + (Bounds.Width - textWidth) / 2f,
-            Bounds.Y + (Bounds.Height - fontSize) / 2f);
+            Bounds.X + (Bounds.Width - textSize.X) / 2f,
+            Bounds.Y + (Bounds.Height - textSize.Y) / 2f);
 
-        Raylib.DrawText(Label, (int)pos.X, (int)pos.Y, fontSize, Color.Black);
+        Raylib.DrawTextEx(Raylib.GetFontDefault(), Label, pos, fontSize, 1, Color.Black);
+    }
+
+    /// Shrinks the font until the label fits within the button width,
+    /// preventing the text overlap seen with long algorithm names.
+    private float GetFittingFontSize()
+    {
+        var font = Raylib.GetFontDefault();
+        var fontSize = Bounds.Height * MaxFontScale;
+        var availableWidth = Bounds.Width - HorizontalPadding * 2;
+
+        var textWidth = Raylib.MeasureTextEx(font, Label, fontSize, 1).X;
+        if (textWidth > availableWidth && textWidth > 0)
+        {
+            fontSize *= availableWidth / textWidth;
+        }
+
+        return MathF.Max(fontSize, MinFontSize);
     }
 }
