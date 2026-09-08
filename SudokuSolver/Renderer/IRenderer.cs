@@ -1,6 +1,8 @@
-﻿namespace SudokuSolver.Renderer;
+﻿using SudokuSolver.Model;
+
+namespace SudokuSolver.Renderer;
 
 public interface IRenderer
 {
-    void Draw();
+    void Draw(SudokuBoard board, (int Row, int Col)? selectedCell);
 }

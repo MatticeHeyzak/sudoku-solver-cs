@@ -7,4 +7,6 @@ public static class Settings
     public const int WindowHeight = 1000;
 
     public const int Fps = 30;
+
+    public const int ButtonBarHeight = 80;
 }
