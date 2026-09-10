@@ -62,11 +62,14 @@ public sealed class InputHandler
     {
         if (SelectedCell is not { } sel) return;
 
-        for (int key = (int)KeyboardKey.One; key <= (int)KeyboardKey.Nine; key++)
+        for (int i = 0; i < 9; i++)
         {
-            if (Raylib.IsKeyPressed((KeyboardKey)key))
+            KeyboardKey mainKey = KeyboardKey.One + i;
+            KeyboardKey numpadKey = KeyboardKey.Kp1 + i;
+
+            if (Raylib.IsKeyPressed(mainKey) || Raylib.IsKeyPressed(numpadKey))
             {
-                int value = key - (int)KeyboardKey.One + 1;
+                int value = i + 1;
                 board.TrySet(sel.Row, sel.Col, value, CellOrigin.User);
                 return;
             }
