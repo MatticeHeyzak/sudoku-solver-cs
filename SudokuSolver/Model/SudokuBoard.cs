@@ -1,4 +1,6 @@
-﻿namespace SudokuSolver.Model;
+﻿using System.Numerics;
+
+namespace SudokuSolver.Model;
 
 public enum CellOrigin
 {
@@ -109,5 +111,28 @@ public sealed class SudokuBoard
             if (_rowMask[r] != FullMask) return false;
 
         return true;
+    }
+
+    public (int Row, int Col)? FindFirstEmpty()
+    {
+        for (int r = 0; r < Size; r++)
+        for (int c = 0; c < Size; c++)
+            if (_values[r, c] == 0)
+                return (r, c);
+
+        return null;
+    }
+
+    /// <summary>
+    /// Enumerates the individual digits (1-9) set in a candidate mask
+    /// </summary>
+    public static IEnumerable<int> EnumerateDigits(int mask)
+    {
+        while (mask != 0)
+        {
+            int bit = mask & -mask; // lowest set bit
+            yield return BitOperations.TrailingZeroCount(bit) + 1;
+            mask &= mask - 1; // clear lowest set bit
+        }
     }
 }

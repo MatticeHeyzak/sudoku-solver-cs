@@ -50,9 +50,15 @@ public sealed class SudokuProgram
         if (Raylib.IsKeyPressed(KeyboardKey.Enter))
         {
             var solver = SolverFactory.Create(_algorithmSelector.Selected);
-            solver.TrySolve(_board);
+            var solved = solver.TrySolve(_board);
             _input.DisableInputMode();
             _algorithmSelector.DisableInputMode();
+
+            if (!solved)
+            {
+                Console.WriteLine("Failed to find a solution");
+            }
+                
         }
     }
 
