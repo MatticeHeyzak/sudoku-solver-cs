@@ -12,4 +12,9 @@ public static class Settings
 
     public const int ButtonBarHeight = 80;
     public const int BoardMargin = 20;
+
+    public const int VisualizationStepsPerFrame = 8;
+    public const float VisualizeToggleWidth = 160f;
+
+    public const float AlgorithmSelectorMinButtonWidth = 120f;
 }

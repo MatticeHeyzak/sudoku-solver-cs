@@ -6,8 +6,8 @@ public sealed class BacktrackingMrvSolver : ISudokuSolver
 {
     public string DisplayName => "Backtracking with MRV";
 
-    public bool TrySolve(SudokuBoard board)
+    public IEnumerable<SolverStep> Solve(SudokuBoard board)
     {
-        return false;
+        yield return SolverStep.Failed();
     }
 }

@@ -16,10 +16,13 @@ public readonly struct BoardLayout
         CellLength = cellLength;
     }
 
-    public static BoardLayout ComputeForScreen(int screenWidth, int screenHeight)
+    /// buttonBarHeight is dynamic because the algorithm selector may wrap
+    /// into multiple rows on narrow windows, so the board must shrink to
+    /// leave enough room for it.
+    public static BoardLayout ComputeForScreen(int screenWidth, int screenHeight, float buttonBarHeight)
     {
         int availableWidth = screenWidth - Settings.BoardMargin * 2;
-        int availableHeight = screenHeight - Settings.ButtonBarHeight - Settings.BoardMargin * 3;
+        float availableHeight = screenHeight - buttonBarHeight - Settings.BoardMargin * 3;
 
         float gridLength = Math.Max(GridSize, Math.Min(availableWidth, availableHeight));
 
@@ -29,13 +32,13 @@ public readonly struct BoardLayout
         return new BoardLayout(new Rectangle(startX, startY, gridLength, gridLength), gridLength / GridSize);
     }
 
-    public Rectangle GetButtonBarArea(int screenWidth)
+    public Rectangle GetButtonBarArea(int screenWidth, float buttonBarHeight)
     {
         return new Rectangle(
             Settings.BoardMargin,
             Bounds.Y + Bounds.Height + Settings.BoardMargin,
             screenWidth - Settings.BoardMargin * 2,
-            Settings.ButtonBarHeight);
+            buttonBarHeight);
     }
 
     public bool TryGetCell(Vector2 point, out int row, out int col)

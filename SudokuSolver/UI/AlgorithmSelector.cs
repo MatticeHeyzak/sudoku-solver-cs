@@ -6,9 +6,12 @@ namespace SudokuSolver.UI;
 public class AlgorithmSelector
 {
     private const float ButtonGap = 6f;
+    private const int WrappedColumns = 2;
 
     private readonly Dictionary<SolverType, Button> _buttons = new();
     private bool _inputMode = true;
+
+    public static int ButtonCount { get; } = Enum.GetValues<SolverType>().Length;
 
     public SolverType Selected { get; private set; } = SolverType.Backtracking;
 
@@ -23,20 +26,40 @@ public class AlgorithmSelector
 
     public void DisableInputMode() => _inputMode = false;
 
-    /// Recomputes each button's rectangle from the given bar area.
-    /// Call every frame (or on resize) so buttons scale with the window.
+    public static int GetRequiredRows(float availableWidth, int buttonCount)
+    {
+        float widthPerButton = availableWidth / buttonCount;
+        if (widthPerButton >= Settings.AlgorithmSelectorMinButtonWidth)
+            return 1;
+
+        return (int)Math.Ceiling(buttonCount / (double)WrappedColumns);
+    }
+
+    public static float GetRequiredHeight(float availableWidth, int buttonCount)
+    {
+        int rows = GetRequiredRows(availableWidth, buttonCount);
+        return rows * Settings.ButtonBarHeight + (rows - 1) * ButtonGap;
+    }
+
     public void UpdateLayout(Rectangle area)
     {
         var types = _buttons.Keys.ToArray();
-        var buttonWidth = (area.Width - ButtonGap * (types.Length - 1)) / types.Length;
+        int rows = GetRequiredRows(area.Width, types.Length);
+        int columns = rows == 1 ? types.Length : WrappedColumns;
+
+        var buttonWidth = (area.Width - ButtonGap * (columns - 1)) / columns;
+        var buttonHeight = (area.Height - ButtonGap * (rows - 1)) / rows;
 
         for (int i = 0; i < types.Length; i++)
         {
+            int row = i / columns;
+            int col = i % columns;
+
             var bounds = new Rectangle(
-                area.X + i * (buttonWidth + ButtonGap),
-                area.Y,
+                area.X + col * (buttonWidth + ButtonGap),
+                area.Y + row * (buttonHeight + ButtonGap),
                 buttonWidth,
-                area.Height);
+                buttonHeight);
 
             _buttons[types[i]].UpdateBounds(bounds);
         }

@@ -6,8 +6,8 @@ public sealed class ConstraintPropagationSolver : ISudokuSolver
 {
     public string DisplayName => "Constraint propagation";
 
-    public bool TrySolve(SudokuBoard board)
+    public IEnumerable<SolverStep> Solve(SudokuBoard board)
     {
-        return false;
+        yield return SolverStep.Failed();
     }
 }

@@ -6,5 +6,5 @@ public interface ISudokuSolver
 {
     string DisplayName { get; }
     
-    bool TrySolve(SudokuBoard board);
+    IEnumerable<SolverStep> Solve(SudokuBoard board);
 }

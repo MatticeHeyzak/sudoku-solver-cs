@@ -6,8 +6,8 @@ public sealed class DancingLinksSolver : ISudokuSolver
 {
     public string DisplayName => "Dancing links";
 
-    public bool TrySolve(SudokuBoard board)
+    public IEnumerable<SolverStep> Solve(SudokuBoard board)
     {
-        return false;
+        yield return SolverStep.Failed();
     }
 }

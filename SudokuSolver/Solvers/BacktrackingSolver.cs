@@ -6,16 +6,19 @@ public sealed class BacktrackingSolver : ISudokuSolver
 {
     public string DisplayName => "Backtracking";
 
-    public bool TrySolve(SudokuBoard board)
+    public IEnumerable<SolverStep> Solve(SudokuBoard board)
     {
-        return Solve(board);
+        return SolveRecursive(board);
     }
     
-    private static bool Solve(SudokuBoard board)
+    private static IEnumerable<SolverStep> SolveRecursive(SudokuBoard board)
     {
         var next = board.FindFirstEmpty();
         if (next is null)
-            return true;
+        {
+            yield return SolverStep.Solved();
+            yield break;
+        }
 
         var (row, col) = next.Value;
         int candidates = board.GetCandidateMask(row, col);
@@ -23,14 +26,22 @@ public sealed class BacktrackingSolver : ISudokuSolver
         foreach (int digit in SudokuBoard.EnumerateDigits(candidates))
         {
             if (!board.TrySet(row, col, digit, CellOrigin.Solved))
-                continue; // shouldn't happen since digit came from candidate but stay safe
-
-            if (Solve(board))
-                return true;
+                continue;
             
-            board.Clear(row, col); // undo and try next candidate
-        }
+            yield return SolverStep.Place(row, col, digit);
 
-        return false; // no candidate worked -> backtrack
+            foreach (var inner in SolveRecursive(board))
+            {
+                yield return inner;
+
+                if (inner.Kind == StepKind.Solved)
+                    yield break; // solution found further down - unwind without undoing
+            }
+            
+            board.Clear(row, col);
+            yield return SolverStep.Undo(row, col);
+        }
+        
+        yield return SolverStep.Failed();
     }
 }
