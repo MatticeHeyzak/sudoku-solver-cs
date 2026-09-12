@@ -123,6 +123,30 @@ public sealed class SudokuBoard
         return null;
     }
 
+    public (int Row, int Col)? FindMostConstrainedCell()
+    {
+        int bestRow = -1, bestCol = -1, bestCount = int.MaxValue;
+        
+        for (int r = 0; r < Size; r++)
+        for (int c = 0; c < Size; c++)
+        {
+            if (_values[r, c] != 0) continue;
+            
+            int count = BitOperations.PopCount((uint)GetCandidateMask(r, c));
+            if (count == 0) return (r, c);
+
+            if (count < bestCount)
+            {
+                bestCount = count;
+                bestRow = r;
+                bestCol = c;
+                if (count == 1) return (r, c); // can't do better than only one option
+            }
+        }
+        
+        return bestRow == -1 ? null : (bestRow, bestCol);
+    }
+    
     /// <summary>
     /// Enumerates the individual digits (1-9) set in a candidate mask
     /// </summary>
