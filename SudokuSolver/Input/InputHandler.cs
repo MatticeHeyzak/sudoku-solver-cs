@@ -36,10 +36,15 @@ public sealed class InputHandler
 
     private void HandleKeyboardNavigation()
     {
+        // Check for any directional key press to initialize selection if nothing is selected
+        bool pressUp = Raylib.IsKeyPressed(KeyboardKey.Up) || Raylib.IsKeyPressed(KeyboardKey.W);
+        bool pressDown = Raylib.IsKeyPressed(KeyboardKey.Down) || Raylib.IsKeyPressed(KeyboardKey.S);
+        bool pressLeft = Raylib.IsKeyPressed(KeyboardKey.Left) || Raylib.IsKeyPressed(KeyboardKey.A);
+        bool pressRight = Raylib.IsKeyPressed(KeyboardKey.Right) || Raylib.IsKeyPressed(KeyboardKey.D);
+
         if (SelectedCell is not { } sel)
         {
-            if (Raylib.IsKeyPressed(KeyboardKey.Up) || Raylib.IsKeyPressed(KeyboardKey.Down) ||
-                Raylib.IsKeyPressed(KeyboardKey.Left) || Raylib.IsKeyPressed(KeyboardKey.Right))
+            if (pressUp || pressDown || pressLeft || pressRight)
             {
                 SelectedCell = (0, 0);
             }
@@ -49,10 +54,10 @@ public sealed class InputHandler
         int row = sel.Row;
         int col = sel.Col;
 
-        if (Raylib.IsKeyPressed(KeyboardKey.Up)) row = Math.Max(0, row - 1);
-        else if (Raylib.IsKeyPressed(KeyboardKey.Down)) row = Math.Min(BoardLayout.GridSize - 1, row + 1);
-        else if (Raylib.IsKeyPressed(KeyboardKey.Left)) col = Math.Max(0, col - 1);
-        else if (Raylib.IsKeyPressed(KeyboardKey.Right)) col = Math.Min(BoardLayout.GridSize - 1, col + 1);
+        if (pressUp) row = Math.Max(0, row - 1);
+        else if (pressDown) row = Math.Min(BoardLayout.GridSize - 1, row + 1);
+        else if (pressLeft) col = Math.Max(0, col - 1);
+        else if (pressRight) col = Math.Min(BoardLayout.GridSize - 1, col + 1);
         else return;
 
         SelectedCell = (row, col);

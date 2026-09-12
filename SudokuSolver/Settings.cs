@@ -14,7 +14,9 @@ public static class Settings
     public const int BoardMargin = 20;
 
     public const int VisualizationStepsPerFrame = 8;
-    public const float VisualizeToggleWidth = 160f;
 
+    public const double InstantSolveFrameBudgetMs = 8.0;
+    
+    public const float VisualizeToggleWidth = 160f;
     public const float AlgorithmSelectorMinButtonWidth = 120f;
 }

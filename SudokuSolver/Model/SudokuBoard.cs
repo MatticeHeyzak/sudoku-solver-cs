@@ -159,4 +159,15 @@ public sealed class SudokuBoard
             mask &= mask - 1; // clear lowest set bit
         }
     }
+    
+    public SudokuBoard Clone()
+    {
+        var clone = new SudokuBoard();
+        Array.Copy(_values, clone._values, _values.Length);
+        Array.Copy(_origin, clone._origin, _origin.Length);
+        Array.Copy(_rowMask, clone._rowMask, _rowMask.Length);
+        Array.Copy(_colMask, clone._colMask, _colMask.Length);
+        Array.Copy(_boxMask, clone._boxMask, _boxMask.Length);
+        return clone;
+    }
 }
