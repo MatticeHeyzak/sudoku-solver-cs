@@ -30,6 +30,7 @@ public sealed class SudokuProgram
     private SolveState _state = SolveState.Idle;
     private bool _solveStarted;
 
+    private SudokuBoard? _preSolveSnapshot;
     private SudokuBoard? _workingBoard;
     private IEnumerator<SolverStep>? _solveEnumerator;
     private int _replayIndex;
@@ -65,6 +66,15 @@ public sealed class SudokuProgram
     {
         RecalculateLayout();
 
+        // Reset/cancel takes priority over everything else, and works
+        // whether a solve is currently running (Loading/Revealing) or has
+        // already finished (Idle with _solveStarted still true).
+        if (_solveStarted && Raylib.IsKeyPressed(KeyboardKey.R))
+        {
+            ResetToPreSolveState();
+            return;
+        }
+
         switch (_state)
         {
             case SolveState.Loading:
@@ -88,6 +98,7 @@ public sealed class SudokuProgram
         _input.DisableInputMode();
         _algorithmSelector.DisableInputMode();
         _solveStarted = true;
+        _preSolveSnapshot = _board.Clone();
 
         var solver = SolverFactory.Create(_algorithmSelector.Selected);
         _workingBoard = _board.Clone();
@@ -96,10 +107,24 @@ public sealed class SudokuProgram
         _state = SolveState.Loading;
     }
 
-    /// Computes solver steps against the private working board (never the
-    /// real one) for up to InstantSolveFrameBudgetMs per frame, so the UI
-    /// stays responsive - regardless of the Visualize toggle - while the
-    /// spinner plays over the still-unchanged on-screen board.
+    private void ResetToPreSolveState()
+    {
+        _solveEnumerator?.Dispose();
+        _solveEnumerator = null;
+        _workingBoard = null;
+        _recordedSteps.Clear();
+        _replayIndex = 0;
+        _state = SolveState.Idle;
+
+        if (_preSolveSnapshot is not null)
+            _board.RestoreFrom(_preSolveSnapshot);
+        _preSolveSnapshot = null;
+
+        _solveStarted = false;
+        _input.EnableInputMode();
+        _algorithmSelector.EnableInputMode();
+    }
+
     private void AdvanceLoading()
     {
         double deadline = Raylib.GetTime() + Settings.InstantSolveFrameBudgetMs / 1000.0;
@@ -128,9 +153,6 @@ public sealed class SudokuProgram
             return;
         }
 
-        // No animation requested - just stamp the final solved values onto
-        // the real board in one shot. O(81), independent of how many steps
-        // the solver actually took, so this is always instant.
         CopySolvedCells(_workingBoard!, _board);
         FinishSolve();
     }
@@ -158,7 +180,6 @@ public sealed class SudokuProgram
             case StepKind.Undo:
                 _board.Clear(step.Row, step.Col);
                 break;
-            // Solved / Failed carry no board mutation.
         }
     }
 
@@ -167,7 +188,7 @@ public sealed class SudokuProgram
         for (int r = 0; r < SudokuBoard.Size; r++)
         for (int c = 0; c < SudokuBoard.Size; c++)
         {
-            if (destination.GetValue(r, c) != 0) continue; // given/user cell - leave untouched
+            if (destination.GetValue(r, c) != 0) continue;
 
             int value = source.GetValue(r, c);
             if (value != 0)
@@ -175,6 +196,10 @@ public sealed class SudokuProgram
         }
     }
 
+    /// Marks the solve as finished. Deliberately leaves _solveStarted and
+    /// _preSolveSnapshot untouched - the board stays showing the solved
+    /// result, editing stays disabled, and "Press R to reset" keeps
+    /// showing until the user explicitly resets.
     private void FinishSolve()
     {
         _state = SolveState.Idle;
@@ -236,31 +261,30 @@ public sealed class SudokuProgram
 
         _renderer.Draw(_board, _input.SelectedCell, _layout);
 
-        // Loading always shows the spinner - the real board hasn't been
-        // touched yet in either mode. Revealing only animates when
-        // Visualize is on, so no overlay is needed there.
         if (_state == SolveState.Loading)
             _solvingOverlay.Draw(_layout.Bounds, "Solving...");
 
         _algorithmSelector.Draw();
         _visualizeToggle.Draw();
 
-        if (!_solveStarted)
-            DrawStartHint();
+        DrawStatusHint();
 
         Raylib.EndDrawing();
     }
 
-    private void DrawStartHint()
+    /// Shows "Press ENTER to start solving" above the board before a solve
+    /// has begun, or "Press R to reset" while solving/after it's done.
+    private void DrawStatusHint()
     {
-        const string text = "Press ENTER to start solving";
+        string text = _solveStarted ? "Press R to reset" : "Press ENTER to start solving";
+
         var font = Raylib.GetFontDefault();
         const float fontSize = 18f;
         var textSize = Raylib.MeasureTextEx(font, text, fontSize, 1);
 
         var pos = new Vector2(
             (Raylib.GetScreenWidth() - textSize.X) / 2f,
-            _barArea.Y + _barArea.Height + 8f);
+            MathF.Max(2f, _layout.Bounds.Y - textSize.Y - 8f));
 
         Raylib.DrawTextEx(font, text, pos, fontSize, 1, Color.Gray);
     }

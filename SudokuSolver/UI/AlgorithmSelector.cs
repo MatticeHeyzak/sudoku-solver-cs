@@ -26,6 +26,8 @@ public class AlgorithmSelector
 
     public void DisableInputMode() => _inputMode = false;
 
+    public void EnableInputMode() => _inputMode = true;
+
     public static int GetRequiredRows(float availableWidth, int buttonCount)
     {
         float widthPerButton = availableWidth / buttonCount;

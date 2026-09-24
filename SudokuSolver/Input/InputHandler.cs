@@ -24,6 +24,8 @@ public sealed class InputHandler
         _inputMode = false;
         SelectedCell = null;
     }
+    
+    public void EnableInputMode() => _inputMode = true;
 
     private void HandleMouseSelection(BoardLayout layout)
     {
